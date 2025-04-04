@@ -3,15 +3,12 @@ package http_auth
 import (
 	"errors"
 	"strconv"
-	"fmt"
 	"strings"
 )
 
-func parseHeader(header string, strict bool) ([]Challenge) {
+func parseHeader(header string, strict bool) []Challenge {
 	ret := []Challenge{}
 	currentChallenge := Challenge{}
-	currentParams := AuthParam{}
-
 	header = strings.TrimSpace(header)
 
 	for token := range tokenizeHeader(header) {
@@ -29,18 +26,11 @@ func parseHeader(header string, strict bool) ([]Challenge) {
 			if err == nil {
 				val = unquoted
 			}
-
-			currentParams.Key = key
-			currentParams.Value = val
-			currentChallenge.Params = append(currentChallenge.Params, currentParams)
-			currentParams = AuthParam{}
+			currentChallenge.setParam(key, val)
 		}
 
 		if token.Type == TokenToken68 {
-			currentParams.Key = fmt.Sprintf("%d", len(currentChallenge.Params))
-			currentParams.Value = token.Token
-			currentChallenge.Params = append(currentChallenge.Params, currentParams)
-			currentParams = AuthParam{}
+			currentChallenge.addPositionalParam(token.Token)
 		}
 	}
 	ret = append(ret, currentChallenge)
@@ -66,12 +56,16 @@ func ParseChallenges(header string, strict bool) ([]Challenge, error) {
 	return challenges, nil
 }
 
-func ParseAuthorizations(header string, strict bool) ([]Challenge, error) {
+func ParseAuthorization(header string, strict bool) (Authorization, error) {
 	challenges := parseHeader(header, strict)
 	challengeCount := len(challenges)
 	if challengeCount == 0 {
-		return nil, errors.New("no challenges could be parsed")
+		return Authorization{}, errors.New("no challenges could be parsed")
 	}
 
-	return challenges, nil
+	if challengeCount > 1 {
+		return Authorization{}, errors.New("More than one authorization was provided in the same header")
+	}
+
+	return challenges[0], nil
 }

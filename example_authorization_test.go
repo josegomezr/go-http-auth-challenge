@@ -1,24 +1,22 @@
 package http_auth_test
 
 import (
+	http_auth "github.com/josegomezr/go-http-auth-challenge"
 	"reflect"
 	"testing"
-	http_auth "github.com/josegomezr/go-http-auth-challenge"
 )
 
 func TestRealWorldBearerAuthorization(t *testing.T) {
 	authorizationHeader := `Bearer dG9rZW4=`
 
-	expectedHeaders := []http_auth.Challenge{
-		{
-			Scheme: "Bearer",
-			Params: []http_auth.AuthParam{
-				{"0", "dG9rZW4="},
-			},
+	expectedHeaders := http_auth.Authorization{
+		Scheme: "Bearer",
+		Params: []http_auth.AuthParam{
+			{"0", "dG9rZW4="},
 		},
 	}
 
-	results, err := http_auth.ParseAuthorizations(authorizationHeader, true)
+	results, err := http_auth.ParseAuthorization(authorizationHeader, true)
 	if err != nil {
 		t.Fatalf("Error parsing challenge: %s", err)
 	}
@@ -31,16 +29,14 @@ func TestRealWorldBearerAuthorization(t *testing.T) {
 func TestRealWorldBasicAuthorization(t *testing.T) {
 	authorizationHeader := `Basic dG9rZW4=`
 
-	expectedHeaders := []http_auth.Challenge{
-		{
-			Scheme: "Basic",
-			Params: []http_auth.AuthParam{
-				{"0", "dG9rZW4="},
-			},
+	expectedHeaders := http_auth.Authorization{
+		Scheme: "Basic",
+		Params: []http_auth.AuthParam{
+			{"0", "dG9rZW4="},
 		},
 	}
 
-	results, err := http_auth.ParseAuthorizations(authorizationHeader, true)
+	results, err := http_auth.ParseAuthorization(authorizationHeader, true)
 	if err != nil {
 		t.Fatalf("Error parsing challenge: %s", err)
 	}

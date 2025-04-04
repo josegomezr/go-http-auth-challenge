@@ -1,9 +1,9 @@
 package http_auth_test
 
 import (
+	http_auth "github.com/josegomezr/go-http-auth-challenge"
 	"reflect"
 	"testing"
-	http_auth "github.com/josegomezr/go-http-auth-challenge"
 )
 
 func TestRealWorldBearerChallenge(t *testing.T) {

@@ -58,7 +58,14 @@ type TokenizerDTO struct {
 //                    with or without padding
 // auth-scheme    = token
 // auth-param     = token BWS "=" BWS ( token / quoted-string )
-// challenge      = auth-scheme [ 1*SP ( token68 / #auth-param ) ]
+// challenge      = auth-scheme [ 1*SP ( token68 / [ ( "," / auth-param )
+//                  *( OWS "," [ OWS auth-param ] ) ] ) ]
+// credentials    = auth-scheme [ 1*SP ( token68 / [ ( "," / auth-param )
+//                  *( OWS "," [ OWS auth-param ] ) ] ) ]
+// Headers grammar
+//
+// Authorization = credentials
+// WWW-Authenticate = 1#challenge
 
 // close enough character clasification functions
 func isTchar(c rune) bool {
