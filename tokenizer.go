@@ -68,8 +68,10 @@ type TokenizerDTO struct {
 // WWW-Authenticate = 1#challenge
 
 // close enough character clasification functions
+// TODO: maybe copy-paste the net/http impl from: https://github.com/golang/go/blob/go1.24.2/src/net/textproto/reader.go
+
 func isTchar(c rune) bool {
-	punctuation := "!#$%&'*+-.^_`|~/="
+	punctuation := "!#$%&'*+-.^_`|~/=;"
 	return unicode.IsLetter(c) || unicode.IsNumber(c) || strings.ContainsRune(punctuation, c)
 }
 
@@ -205,9 +207,7 @@ func extractPotentialTokenPair(previouslyEmitted TokenType, acc string) Tokenize
 		tokenType = TokenToken68
 	} else if hasEqual {
 		tokenType = TokenAuthParam
-	}
-
-	if previouslyEmitted == TokenToken {
+	} else if previouslyEmitted == TokenToken {
 		tokenType = TokenToken68
 	}
 	return TokenizerDTO{tokenType, acc}

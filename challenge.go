@@ -5,9 +5,10 @@ import (
 )
 
 type Challenge struct {
-	Scheme       string
-	Params       []AuthParam
+	Scheme string
+	Params []AuthParam
 }
+
 // Challenge & Authorization are effectively the same type
 type Authorization = Challenge
 

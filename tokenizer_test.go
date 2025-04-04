@@ -161,3 +161,27 @@ func TestOnlyAuthBasic(t *testing.T) {
 		t.Fatalf("Failed. Token count mismatch. Last token=%q", expected[idx])
 	}
 }
+
+func TestRealWorldAmazon(t *testing.T) {
+	header := "AWS4-HMAC-SHA256 Credential=AKID/19700101/us-east-1/dynamodb/aws4_request, SignedHeaders=content-length;content-type;host;x-amz-date;x-amz-meta-other-header;x-amz-meta-other-header_with_underscore;x-amz-security-token;x-amz-target, Signature=a518299330494908a70222cec6899f6f32f297f8595f6df1776d998936652ad9"
+	expected := []TokenizerDTO{
+		{TokenToken, "AWS4-HMAC-SHA256"},
+		{TokenAuthParam, "Credential=AKID/19700101/us-east-1/dynamodb/aws4_request"},
+		{TokenAuthParam, "SignedHeaders=content-length;content-type;host;x-amz-date;x-amz-meta-other-header;x-amz-meta-other-header_with_underscore;x-amz-security-token;x-amz-target"},
+		{TokenAuthParam, "Signature=a518299330494908a70222cec6899f6f32f297f8595f6df1776d998936652ad9"},
+	}
+
+	idx := 0
+	for got := range tokenizeHeader(header) {
+		if idx >= len(expected) {
+			t.Fatalf("Failed. got extra token=%q", got)
+		}
+		if !reflect.DeepEqual(got, expected[idx]) {
+			t.Fatalf("Failed. got=%q expected=%q", got, expected[idx])
+		}
+		idx += 1
+	}
+	if len(expected) != idx {
+		t.Fatalf("Failed. Token count mismatch. Last token=%q", expected[idx])
+	}
+}
