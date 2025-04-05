@@ -5,7 +5,7 @@ A compliant-enough implementation to parse HTTP `WWW-Authenticate` &
 `Authorization` headers in pure go.
 
 This implementation tries to be compliant-enough (to the extent of my skills)
-with the grammars defined in [RFC7230] § 3.2.6 & [RFC7235] § 2.1 with regards
+with the grammars defined in [RFC 7230 § 3.2.6](https://datatracker.ietf.org/doc/html/rfc7230#section-3.2.6) & [RFC 7235 § 2.1](https://datatracker.ietf.org/doc/html/rfc7235#section-2.1) with regards
 to processing the values of the HTTP Authorization headers.
 
 Usage

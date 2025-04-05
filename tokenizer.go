@@ -6,38 +6,38 @@ import (
 	"unicode"
 )
 
+// Represents the state of the tokenizer.
+// See grammars in RFC 7230 § 3.2.6 & RFC 7235 § 2.1
 type TokenizerState int
 
 const (
-	StateSTART TokenizerState = iota
-	StateToken
-	StateSP
-	StateQuotedString
-	StateQuotedStringEscaping
-	StateToken68
-	StateTokenKey
-	StateTokenValue
+	StateToken                TokenizerState = iota // Parsing a Token
+	StateSP                                         // Parsing a Space
+	StateQuotedString                               // Parsing a Quoted String
+	StateQuotedStringEscaping                       // Parsing an escaped character in a quoted string
+	StateToken68                                    // Parsing a Token68 [a letter of the base{64,32,16} alphabet]
 )
 
+// Represents the type of a fully formed token recognized by the parser
+// See grammars in RFC 7230 § 3.2.6 & RFC 7235 § 2.1
 type TokenType int
 
 const (
-	NOTOKEN TokenType = iota
-	TokenToken
-	TokenToken68
-	TokenAuthParam
-	TokenKey
-	TokenValue
-	TokenQuotedString
+	NOTOKEN        TokenType = iota
+	TokenToken               // A token like the Challenge Scheme name
+	TokenToken68             // A Token68 [base{64,32,16} string]
+	TokenAuthParam           // A key=value token
 )
 
+// Represents a fully formed token recognized by the parser
+// See grammars in RFC 7230 § 3.2.6 & RFC 7235 § 2.1
 type TokenizerDTO struct {
 	Type  TokenType
 	Token string
 }
 
 // Reference Grammar
-// Collected from [RFC7230] § 3.2.6 & [RFC7235] § 2.1
+// See grammars in RFC 7230 § 3.2.6 & RFC 7235 § 2.1
 //
 // OWS            = *( SP / HTAB )
 //                  ; optional whitespace

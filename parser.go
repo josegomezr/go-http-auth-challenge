@@ -1,3 +1,4 @@
+// A compliant-enough implementation to parse HTTP WWW-Authenticate & Authorization headers
 package http_auth
 
 import (
@@ -37,6 +38,7 @@ func parseHeader(header string, strict bool) []Challenge {
 	return ret
 }
 
+// ParseChallenges returns a list of [Challenge]'s found.
 func ParseChallenges(header string, strict bool) ([]Challenge, error) {
 	challenges := parseHeader(header, strict)
 	challengeCount := len(challenges)
@@ -56,6 +58,7 @@ func ParseChallenges(header string, strict bool) ([]Challenge, error) {
 	return challenges, nil
 }
 
+// ParseAuthorization returns a list of [Challenge]'s found.
 func ParseAuthorization(header string, strict bool) (Authorization, error) {
 	challenges := parseHeader(header, strict)
 	challengeCount := len(challenges)
