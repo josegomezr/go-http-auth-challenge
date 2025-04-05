@@ -1,4 +1,4 @@
-HTTP Auth* Headers Parser in pure go
+HTTP Auth* Headers Parser in pure go [![Go Reference](https://pkg.go.dev/badge/github.com/josegomezr/go-http-auth-challenge.svg)](https://pkg.go.dev/github.com/josegomezr/go-http-auth-challenge)
 ===
 
 A compliant-enough implementation to parse HTTP `WWW-Authenticate` &
