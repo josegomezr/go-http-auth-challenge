@@ -3,6 +3,7 @@ package http_auth
 
 import (
 	"errors"
+	"github.com/josegomezr/go-http-auth-challenge/internal/tokenizer"
 	"strconv"
 	"strings"
 )
@@ -12,17 +13,17 @@ func parseHeader(header string, strict bool) []Challenge {
 	currentChallenge := Challenge{}
 	header = strings.TrimSpace(header)
 
-	for token := range tokenizeHeader(header) {
-		if token.Type == TokenToken {
+	for token := range tokenizer.Tokenize(header) {
+		if token.Type == tokenizer.TokenToken {
 			if !currentChallenge.IsEmpty() {
 				ret = append(ret, currentChallenge)
 				currentChallenge = Challenge{}
 			}
-			currentChallenge.Scheme = token.Token
+			currentChallenge.Scheme = token.Value
 		}
 
-		if token.Type == TokenAuthParam {
-			key, val, _ := strings.Cut(token.Token, "=")
+		if token.Type == tokenizer.TokenAuthParam {
+			key, val, _ := strings.Cut(token.Value, "=")
 			unquoted, err := strconv.Unquote(val)
 			if err == nil {
 				val = unquoted
@@ -30,8 +31,14 @@ func parseHeader(header string, strict bool) []Challenge {
 			currentChallenge.setParam(key, val)
 		}
 
-		if token.Type == TokenToken68 {
-			currentChallenge.addPositionalParam(token.Token)
+		if token.Type == tokenizer.TokenToken68 {
+			if len(currentChallenge.Params) > 0 {
+				ret = append(ret, currentChallenge)
+				currentChallenge = Challenge{}
+				currentChallenge.Scheme = token.Value
+			} else {
+				currentChallenge.addPositionalParam(token.Value)
+			}
 		}
 	}
 	ret = append(ret, currentChallenge)
