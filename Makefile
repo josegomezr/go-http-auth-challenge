@@ -1,4 +1,5 @@
 .PHONY: test
 
 test:
-	go test
+	go test -fullpath ./... | sed -E "s#^ +##g"
+
