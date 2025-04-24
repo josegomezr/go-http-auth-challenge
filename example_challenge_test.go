@@ -9,7 +9,7 @@ import (
 // Inspect the challenges sent by a server.
 func ExampleParseChallenges_inspectChallenges() {
 	wwwAuthenticateHeader := `Basic realm="Your pet's name", Bearer service="postal", Fax number=1234`
-	challenges, err := http_auth.ParseChallenges(wwwAuthenticateHeader, true)
+	challenges, err := http_auth.ParseChallenges(wwwAuthenticateHeader)
 	if err != nil {
 		log.Fatalf("Error parsing challenge: %s", err)
 	}
@@ -24,7 +24,7 @@ func ExampleParseChallenges_inspectChallenges() {
 			}
 		case "Bearer":
 			fmt.Println("Scheme: Bearer")
-			service, found := challenge.GetParam("service")
+			service, found := challenge.Params["service"]
 			if found {
 				fmt.Println("- service:", service)
 			}

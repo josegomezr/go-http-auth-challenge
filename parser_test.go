@@ -11,13 +11,13 @@ func TestParseAuthChallengeSimple(t *testing.T) {
 	expectedHeaders := []Challenge{
 		{
 			Scheme: "Basic",
-			Params: []AuthParam{
-				{"realm", "simple"},
+			Params: Params{
+				"realm": "simple",
 			},
 		},
 	}
 
-	results, err := ParseChallenges(inputHeader, true)
+	results, err := ParseChallenges(inputHeader)
 	if err != nil {
 		t.Fatalf("Error parsing challenge: %s", err)
 	}
@@ -33,14 +33,14 @@ func TestParseAuthChallengeTwoParams(t *testing.T) {
 	expectedHeaders := []Challenge{
 		{
 			Scheme: "Bearer",
-			Params: []AuthParam{
-				{"realm", "simple"},
-				{"service", "lol"},
+			Params: Params{
+				"realm":   "simple",
+				"service": "lol",
 			},
 		},
 	}
 
-	results, err := ParseChallenges(inputHeader, true)
+	results, err := ParseChallenges(inputHeader)
 	if err != nil {
 		t.Fatalf("Error parsing challenge: %s", err)
 	}
@@ -56,21 +56,21 @@ func TestParseAuthChallenge(t *testing.T) {
 	expectedHeaders := []Challenge{
 		{
 			Scheme: "Newauth",
-			Params: []AuthParam{
-				{"realm", "apps"},
-				{"type", "1"},
-				{"title", "Login to \"apps\""},
+			Params: Params{
+				"realm": "apps",
+				"type":  "1",
+				"title": "Login to \"apps\"",
 			},
 		},
 		{
 			Scheme: "Basic",
-			Params: []AuthParam{
-				{"realm", "simple"},
+			Params: Params{
+				"realm": "simple",
 			},
 		},
 	}
 
-	results, err := ParseChallenges(inputHeader, true)
+	results, err := ParseChallenges(inputHeader)
 	if err != nil {
 		t.Fatalf("Error parsing challenge: %s", err)
 	}
@@ -89,18 +89,9 @@ func TestParseAuthChallenge(t *testing.T) {
 }
 
 func TestParseIncompleteChallenge(t *testing.T) {
-	inputHeader := `Newauth `
+	inputHeader := ``
 
-	results, err := ParseChallenges(inputHeader, true)
-	if err == nil {
-		t.Fatalf("It did not fail, wtf: %+v", results)
-	}
-}
-
-func TestParseIncompleteCompoundChallenge(t *testing.T) {
-	inputHeader := `Newauth realm="abc", Basic`
-
-	results, err := ParseChallenges(inputHeader, true)
+	results, err := ParseChallenges(inputHeader)
 	if err == nil {
 		t.Fatalf("It did not fail, wtf: %+v", results)
 	}
@@ -108,15 +99,19 @@ func TestParseIncompleteCompoundChallenge(t *testing.T) {
 
 func TestParseIncompleteCompoundChallengeNoStrict(t *testing.T) {
 	// when setting strict to false we tolerate a bit of borkedness in the header
-	inputHeader := `Newauth realm="abc", Basic`
+	inputHeader := `Newauth realm="abc"           ,              , Basic`
 
-	results, err := ParseChallenges(inputHeader, false)
+	results, err := ParseChallenges(inputHeader)
 	expectedHeaders := []Challenge{
 		{
 			Scheme: "Newauth",
-			Params: []AuthParam{
-				{"realm", "abc"},
+			Params: Params{
+				"realm": "abc",
 			},
+		},
+		{
+			Scheme: "Basic",
+			Params: Params{},
 		},
 	}
 	if err != nil {
@@ -132,6 +127,6 @@ func TestParseIncompleteCompoundChallengeNoStrict(t *testing.T) {
 	}
 
 	if !reflect.DeepEqual(expectedHeaders, results) {
-		t.Fatalf("Returned challenges does not match numbers of expected challenges. expected=%q got=%q", expectedHeaders, results)
+		t.Fatalf("Returned challenges does not match numbers of expected challenges. expected=%#v got=%#v", expectedHeaders, results)
 	}
 }

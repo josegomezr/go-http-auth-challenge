@@ -1,8 +1,8 @@
-HTTP Auth* Headers Parser in pure go [![Go Reference](https://pkg.go.dev/badge/github.com/josegomezr/go-http-auth-challenge.svg)](https://pkg.go.dev/github.com/josegomezr/go-http-auth-challenge)
+HTTP Auth* Headers Parser [![Go Reference](https://pkg.go.dev/badge/github.com/josegomezr/go-http-auth-challenge.svg)](https://pkg.go.dev/github.com/josegomezr/go-http-auth-challenge)
 ===
 
 A compliant-enough implementation to parse HTTP `WWW-Authenticate` &
-`Authorization` headers in pure go.
+`Authorization` headers with 0 dependencies
 
 This implementation tries to be compliant-enough (to the extent of my skills)
 with the grammars defined in [RFC 7230 § 3.2.6](https://datatracker.ietf.org/doc/html/rfc7230#section-3.2.6) & [RFC 7235 § 2.1](https://datatracker.ietf.org/doc/html/rfc7235#section-2.1) with regards
@@ -11,7 +11,7 @@ to processing the values of the HTTP Authorization headers.
 Usage
 ---
 
-### When consuming `www-authenticate` headers
+### When consuming challenge headers (`www-authenticate`, `proxy-authenticate`)
 
 ```go
 package main
@@ -66,7 +66,7 @@ func main() {
 }
 ```
 
-### When consuming `authentication` headers
+### When consuming authorization headers (`authentication`, `proxy-authorization`)
 
 ```go
 package main

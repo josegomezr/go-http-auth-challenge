@@ -7,46 +7,59 @@ import (
 // Represents an HTTP Challenge as per RFC 7235 § 2.1
 type Challenge struct {
 	Scheme string
-	Params []AuthParam
+	Params Params
 }
 
 // Challenge & Authorization are effectively the same type
 type Authorization = Challenge
 
-// Get the first value of the challenge. Useful to get Tokens out of Authorization Basic or Bearer
-func (c *Challenge) GetFirstValue(key string) (string, bool) {
-	if len(c.Params) == 0 {
-		return "", false
-	}
-	return c.Params[0].Value, true
+// Representation of Authorization Parameters
+type Params = map[string]string
+
+// The value for the Token of this particular Authorization.
+//
+// Using a delimiter for the name is a nice trick to avoid accidental parameter
+// overwrites when parsing headers. It's impossible for an authentication
+// parameter to have a delimiter in the key as per grammar: <token, see
+// [RFC7230], Section 3.2.6>
+const TokenParameterName = ":TOKEN68:"
+
+// Initialize a new Challenge
+func NewChallenge() Challenge {
+	c := Challenge{}
+	c.Params = make(map[string]string)
+	return c
 }
 
-// Get an auth-param by name. Non-named auth-params (like tokens) are saved in
-// order of discovery (meaning "0" is the first Token after the auth scheme)
+// Get an authentication parameter by name
 func (c *Challenge) GetParam(key string) (string, bool) {
-	for _, param := range c.Params {
-		if param.Key == key {
-			return param.Value, true
-		}
+	v, ok := c.Params[key]
+	return v, ok
+}
+
+// Get the default authentication parameter (token)
+func (c *Challenge) GetTokenParam() (string, bool) {
+	return c.GetParam(TokenParameterName)
+}
+
+func (c *Challenge) setParam(key, value string) error {
+	if _, ok := c.Params[key]; ok {
+		return fmt.Errorf("duplicated authorization parameter %q", key)
 	}
-	return "", false
+	c.Params[key] = value
+	return nil
 }
 
-func (c *Challenge) setParam(key, value string) {
-	c.Params = append(c.Params, AuthParam{
-		Key:   key,
-		Value: value,
-	})
-}
-
-func (c *Challenge) addPositionalParam(value string) {
-	key := fmt.Sprintf("%d", len(c.Params))
-	c.setParam(key, value)
+func (c *Challenge) setTokenParam(value string) error {
+	if err := c.setParam(TokenParameterName, value); err != nil {
+		return fmt.Errorf("duplicated authorization value")
+	}
+	return nil
 }
 
 // Checks if a Challenge is empty (Either name is empty or has no params)
 func (c *Challenge) IsEmpty() bool {
-	return c.Scheme == "" || len(c.Params) == 0
+	return c.Scheme == ""
 }
 
 // Shortcut for [Challenge.GetParam]("realm")

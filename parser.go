@@ -2,80 +2,120 @@
 package http_auth
 
 import (
-	"errors"
-	"github.com/josegomezr/go-http-auth-challenge/internal/tokenizer"
+	"fmt"
+	"iter"
 	"strconv"
 	"strings"
 )
 
-func parseHeader(header string, strict bool) []Challenge {
-	ret := []Challenge{}
-	currentChallenge := Challenge{}
-	header = strings.TrimSpace(header)
-
-	for token := range tokenizer.Tokenize(header) {
-		if token.Type == tokenizer.TokenToken {
-			if !currentChallenge.IsEmpty() {
-				ret = append(ret, currentChallenge)
-				currentChallenge = Challenge{}
+func ChallengesIterator(input string) iter.Seq2[Challenge, error] {
+	return func(yield func(Challenge, error) bool) {
+		curr := NewChallenge()
+		for chunk := range groupTokensUntilComma(tokenize(input)) {
+			scheme, value, err := processChunk(chunk...)
+			if err != nil {
+				yield(curr, fmt.Errorf("Error processing header: %+w", err))
+				return
 			}
-			currentChallenge.Scheme = token.Value
+
+			if len(scheme) > 0 {
+				if curr.Scheme != "" {
+					if !yield(curr, nil) {
+						return
+					}
+					curr = NewChallenge()
+				}
+				curr.Scheme = scheme
+			}
+
+			if len(value) > 0 {
+				if curr.Scheme == "" {
+					yield(curr, fmt.Errorf("Unexpected param before scheme"))
+					return
+				}
+
+				pos := strings.IndexRune(value, '=')
+				if pos < 0 || pos == len(value)-1 {
+					curr.setTokenParam(value)
+				} else {
+					key, val, _ := strings.Cut(value, "=")
+					unquoted, err := strconv.Unquote(val)
+					if err == nil {
+						val = unquoted
+					}
+					curr.setParam(key, val)
+				}
+			}
 		}
-
-		if token.Type == tokenizer.TokenAuthParam {
-			key, val, _ := strings.Cut(token.Value, "=")
-			unquoted, err := strconv.Unquote(val)
-			if err == nil {
-				val = unquoted
-			}
-			currentChallenge.setParam(key, val)
-		}
-
-		if token.Type == tokenizer.TokenToken68 {
-			if len(currentChallenge.Params) > 0 {
-				ret = append(ret, currentChallenge)
-				currentChallenge = Challenge{}
-				currentChallenge.Scheme = token.Value
-			} else {
-				currentChallenge.addPositionalParam(token.Value)
-			}
+		if curr.Scheme != "" {
+			yield(curr, nil)
 		}
 	}
-	ret = append(ret, currentChallenge)
-	return ret
 }
 
-// ParseChallenges returns a list of [Challenge]'s found.
-func ParseChallenges(header string, strict bool) ([]Challenge, error) {
-	challenges := parseHeader(header, strict)
-	challengeCount := len(challenges)
-	if challengeCount == 0 {
-		return nil, errors.New("no challenges could be parsed")
-	}
-
-	currentChallenge := challenges[challengeCount-1]
-
-	if currentChallenge.IsEmpty() {
-		if strict {
-			return challenges, errors.New("incomplete header")
+func ParseChallenges(input string) ([]Challenge, error) {
+	var res []Challenge
+	for challenge, err := range ChallengesIterator(input) {
+		if err != nil {
+			return nil, err
 		}
-		challenges = challenges[:challengeCount-1]
+		res = append(res, challenge)
 	}
 
-	return challenges, nil
+	if len(res) <= 0 {
+		return nil, fmt.Errorf("Empty challenges")
+	}
+	return res, nil
 }
 
-// ParseAuthorization returns a list of [Challenge]'s found.
-func ParseAuthorization(header string, strict bool) (Authorization, error) {
-	challenges := parseHeader(header, strict)
-	challengeCount := len(challenges)
-	if challengeCount == 0 {
-		return Authorization{}, errors.New("no challenges could be parsed")
+func ParseAuthorization(input string) (Authorization, error) {
+	next, stop := iter.Pull2(ChallengesIterator(input))
+	defer stop()
+	challenge, err, ok := next()
+	if !ok {
+		return challenge, fmt.Errorf("No auth header found")
+	}
+	if err != nil {
+		return challenge, err
 	}
 
-	if challengeCount > 1 {
-		return Authorization{}, errors.New("More than one authorization was provided in the same header")
+	_, err, ok = next()
+	if ok {
+		return challenge, fmt.Errorf("multiple auth scheme found in a single header")
 	}
 
-	return challenges[0], nil
+	return challenge, nil
+}
+
+func processChunk(chunk ...string) (scheme string, value string, err error) {
+	switch len(chunk) {
+	case 1:
+		// Receiving a single element
+		tok := chunk[0]
+
+		if tok == "," {
+			// This is the case of a redundant comma
+			return
+		} else if strings.ContainsRune(tok, '=') {
+			value = tok
+		} else {
+			scheme = tok
+		}
+	case 2:
+		scheme, value = chunk[0], chunk[1]
+		if len(scheme) == 0 || len(value) == 0 {
+			err = fmt.Errorf("empty scheme/value")
+		} else if value == "," {
+			value = scheme
+			scheme = ""
+		}
+	case 3:
+		scheme, value = chunk[0], chunk[1]
+		if len(scheme) == 0 || len(value) == 0 {
+			err = fmt.Errorf("empty scheme/value")
+		}
+	default:
+		err = fmt.Errorf("Redundant syntax: %d-%+v", len(chunk), chunk)
+	}
+	return
 }
