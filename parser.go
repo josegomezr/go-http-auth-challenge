@@ -110,6 +110,11 @@ func processChunk(chunk ...string) (scheme string, value string, err error) {
 			scheme = ""
 		}
 	case 3:
+		comma := chunk[2]
+		if comma != "" && comma != "," {
+			err = fmt.Errorf("Redundant syntax: %d-%+v", len(chunk), chunk)
+		}
+
 		scheme, value = chunk[0], chunk[1]
 		if len(scheme) == 0 || len(value) == 0 {
 			err = fmt.Errorf("empty scheme/value")

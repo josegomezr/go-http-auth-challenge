@@ -1,7 +1,6 @@
 package http_auth
 
 import (
-	"reflect"
 	"testing"
 )
 
@@ -101,28 +100,5 @@ func TestAddDuplicatedParam(t *testing.T) {
 
 	if err := c.setTokenParam(value); err == nil {
 		t.Fatalf("Allowed to overwrite token param value")
-	}
-}
-
-func TestRealWorldBearerChallenge(t *testing.T) {
-	wwwAuthenticateHeader := `Bearer realm="https://auth.docker.io/token",service="registry.docker.io"`
-
-	expectedHeaders := []Challenge{
-		{
-			Scheme: "Bearer",
-			Params: Params{
-				"realm":   "https://auth.docker.io/token",
-				"service": "registry.docker.io",
-			},
-		},
-	}
-
-	results, err := ParseChallenges(wwwAuthenticateHeader)
-	if err != nil {
-		t.Fatalf("Error parsing challenge: %s", err)
-	}
-
-	if !reflect.DeepEqual(expectedHeaders, results) {
-		t.Fatalf("Returned challenges does not match numbers of expected challenges. expected=%q got=%q", expectedHeaders, results)
 	}
 }

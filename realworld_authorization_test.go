@@ -101,13 +101,14 @@ func TestRealWorldAWSAuth(t *testing.T) {
 	}
 }
 
-// func aTestFuzz(t *testing.T) {
-// 	authorizationHeader := `6C0I1WQ3B824XyAS             HfR5tVt1t 	 		 =	 		    "¨\	 \ª"	 		 	  ,	  	 			 05n44F320YsS				 	  		 =V6o17hX					  			 	 ,			8H344nv		 = 			  	  	  	 1	 	        		  	,	   0N0dRfEcSV		 			      	=		   	 	    		 58Wnj3G4l  		  ,Jh 	   	 		=	  	   		 	 	  					y257g236BYx5q 		, 	 Eqb077				=   	    				  	 	 	"w%\	\ \¼{	\	!ñc\k*\w\Ë	\	!"	 	   	    	 , 			 	 	  	 	4u07W64T919948J3Tp		=  						"\	µ\b\	o\0\ \A\n"	 	   				,    	 		  			u5R62D0801Oj0D40  	 	 =			 		 	   	"\	\Û \F\	Ó\  R"     	 	   		 		  ,  			  		 		 	   	58M128aO92Yl7tZL 	  = 		     				 9			 	  , 	18cW14fd6s74U1ZIu41  				 	  	  	=  	 			  	  	  00qRvIMu7	 	        	  	,		 		 				8CF3ap3ouJ4g7Zxx94 				  		 	   =		926704cPg7iw4lNnat3 	 	 	  			 , 	    	 o88K5022p1f5c 	 =	   	 	 	    				 		eQKgZ8H8m 		  	, 	 		 	 	   	y1ti13s280H2	    			 	 	 		 		=	 	zo18O4d	   	 			    	 	,		U3l283rf8Tn7n3F0A3	=689QL7OH3D90iYoQ9`
+// from: https://github.com/payloadcms/payload/blob/034a26754f4bd1ffb1cd69d72fefb40328257fbf/docs/authentication/api-keys.mdx?plain=1#L51-L65
+// this one is non-compliant with the spec
+func TestRealWorldPayloadCMS(t *testing.T) {
+	authorizationHeader := `foo API-Key ApIKeyVaLuEH3r3`
 
-// 	fmt.Printf("%+v", tokenize(authorizationHeader))
+	results, err := http_auth.ParseAuthorization(authorizationHeader)
+	if err == nil {
+		t.Fatalf("Unexpected success? grammar shouldn't match: %#v", results)
+	}
 
-// 	_, err := http_auth.ParseAuthorization(authorizationHeader)
-// 	if err != nil {
-// 		t.Fatalf("Error parsing challenge: %s", err)
-// 	}
-// }
+}
