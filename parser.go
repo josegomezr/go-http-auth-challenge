@@ -8,7 +8,7 @@ import (
 	"strings"
 )
 
-func ChallengesIterator(input string) iter.Seq2[Challenge, error] {
+func challengesIterator(input string) iter.Seq2[Challenge, error] {
 	return func(yield func(Challenge, error) bool) {
 		curr := NewChallenge()
 		for chunk := range groupTokensUntilComma(tokenize(input)) {
@@ -55,7 +55,7 @@ func ChallengesIterator(input string) iter.Seq2[Challenge, error] {
 
 func ParseChallenges(input string) ([]Challenge, error) {
 	var res []Challenge
-	for challenge, err := range ChallengesIterator(input) {
+	for challenge, err := range challengesIterator(input) {
 		if err != nil {
 			return nil, err
 		}
@@ -69,7 +69,7 @@ func ParseChallenges(input string) ([]Challenge, error) {
 }
 
 func ParseAuthorization(input string) (Authorization, error) {
-	next, stop := iter.Pull2(ChallengesIterator(input))
+	next, stop := iter.Pull2(challengesIterator(input))
 	defer stop()
 	challenge, err, ok := next()
 	if !ok {
